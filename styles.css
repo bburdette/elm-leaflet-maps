@@ -22,7 +22,7 @@ label {
     width: 64px;
 }
 
-google-map {
+leaflet-map {
     height: 400px;
     margin: 10px;
 }

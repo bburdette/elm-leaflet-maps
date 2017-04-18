@@ -13,6 +13,6 @@
     "bower_components"
   ],
   "dependencies": {
-    "google-map": "GoogleWebComponents/google-map#^1.1.13"
+    "leaflet-map": "^1.2.0"
   }
 }

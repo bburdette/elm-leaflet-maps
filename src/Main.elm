@@ -54,9 +54,9 @@ update msg model =
             { model | latitude = latitude, longitude = longitude } ! []
 
 
-googleMap : List (Attribute a) -> List (Html a) -> Html a
-googleMap =
-    Html.node "google-map"
+leafletMap : List (Attribute a) -> List (Html a) -> Html a
+leafletMap =
+    Html.node "leaflet-map"
 
 
 view : Model -> Html Msg
@@ -66,10 +66,10 @@ view model =
             [ label [] [ text "Latitude" ]
             , input
                 [ type_ "range"
-                , attribute "min" "-1800000"
-                , attribute "max" "1800000"
+                , Html.Attributes.min "-1800000"
+                , Html.Attributes.max "1800000"
                 , defaultValue (toString model.latitude)
-                , onChange SetLatitude
+                , onInput SetLatitude
                 ]
                 []
             , span [] [ text (toString model.latitude) ]
@@ -78,10 +78,10 @@ view model =
             [ label [] [ text "Longitude" ]
             , input
                 [ type_ "range"
-                , attribute "min" "-1800000"
-                , attribute "max" "1800000"
+                , Html.Attributes.min "-1800000"
+                , Html.Attributes.max "1800000"
                 , defaultValue (toString model.longitude)
-                , onChange SetLongitude
+                , onInput SetLongitude
                 ]
                 []
             , span [] [ text (toString model.longitude) ]
@@ -91,31 +91,27 @@ view model =
             , src "http://package.elm-lang.org/assets/elm_logo.svg"
             ]
             []
-        , googleMap
+        , leafletMap
             [ attribute "latitude" (toString model.latitude)
             , attribute "longitude" (toString model.longitude)
-            , attribute "drag-events" "true"
-            , recordLatLongOnDrag
+            , attribute "zoom" "5"
+            , on "move"
+                (map2 SetLatLong
+                    (at [ "target", "latitude" ] float)
+                    (at [ "target", "longitude" ] float)
+                )
             ]
             []
         ]
 
 
-recordLatLongOnDrag : Attribute Msg
-recordLatLongOnDrag =
-    on "google-map-drag" <|
-        map2 SetLatLong
-            (at [ "target", "latitude" ] float)
-            (at [ "target", "longitude" ] float)
-
-
-onChange : (Float -> Msg) -> Attribute Msg
-onChange toMsg =
+onInput : (Float -> Msg) -> Attribute Msg
+onInput toMsg =
     Decode.string
         |> Decode.andThen decodeLatLong
         |> Decode.at [ "target", "value" ]
         |> Decode.map toMsg
-        |> on "change"
+        |> on "input"
 
 
 decodeLatLong : String -> Decoder Float

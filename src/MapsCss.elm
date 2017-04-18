@@ -26,7 +26,7 @@ css =
             , right (px 30)
             , width (px 64)
             ]
-        , selector "google-map"
+        , selector "leaflet-map"
             [ height (px 400)
             , margin (px 10)
             ]
