@@ -23,12 +23,18 @@ main =
 type alias Model =
     { latitude : Float
     , longitude : Float
+    , zoom : String
     }
 
 
 init : ( Model, Cmd msg )
 init =
-    ( { latitude = 48.2082, longitude = 16.3738 }, Cmd.none )
+    ( { latitude = 48.2082
+      , longitude = 16.3738
+      , zoom = "5"
+      }
+    , Cmd.none
+    )
 
 
 
@@ -39,6 +45,7 @@ type Msg
     = SetLatitude Float
     | SetLongitude Float
     | SetLatLong Float Float
+    | SetZoom String
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -52,6 +59,9 @@ update msg model =
 
         SetLatLong latitude longitude ->
             { model | latitude = latitude, longitude = longitude } ! []
+
+        SetZoom zoom ->
+            { model | zoom = zoom } ! []
 
 
 leafletMap : List (Attribute a) -> List (Html a) -> Html a
@@ -68,8 +78,8 @@ view model =
                 [ type_ "range"
                 , Html.Attributes.min "-1800000"
                 , Html.Attributes.max "1800000"
-                , defaultValue (toString model.latitude)
-                , onInput SetLatitude
+                , Html.Attributes.value (toString (model.latitude * 10000))
+                , onFloatInput SetLatitude
                 ]
                 []
             , span [] [ text (toString model.latitude) ]
@@ -80,11 +90,23 @@ view model =
                 [ type_ "range"
                 , Html.Attributes.min "-1800000"
                 , Html.Attributes.max "1800000"
-                , defaultValue (toString model.longitude)
-                , onInput SetLongitude
+                , Html.Attributes.value (toString (model.longitude * 10000))
+                , onFloatInput SetLongitude
                 ]
                 []
             , span [] [ text (toString model.longitude) ]
+            ]
+        , div []
+            [ label [] [ text "Zoom" ]
+            , input
+                [ type_ "range"
+                , Html.Attributes.min "0"
+                , Html.Attributes.max "18"
+                , Html.Attributes.value model.zoom
+                , onInput SetZoom
+                ]
+                []
+            , span [] [ text model.zoom ]
             ]
         , img
             [ class "elm-logo"
@@ -94,19 +116,23 @@ view model =
         , leafletMap
             [ attribute "latitude" (toString model.latitude)
             , attribute "longitude" (toString model.longitude)
-            , attribute "zoom" "5"
-            , on "move"
+            , attribute "zoom" model.zoom
+            , on "moveend"
                 (map2 SetLatLong
                     (at [ "target", "latitude" ] float)
                     (at [ "target", "longitude" ] float)
+                )
+            , on "zoomend"
+                (at [ "target", "zoom" ] int
+                    |> Decode.map (toString >> SetZoom)
                 )
             ]
             []
         ]
 
 
-onInput : (Float -> Msg) -> Attribute Msg
-onInput toMsg =
+onFloatInput : (Float -> Msg) -> Attribute Msg
+onFloatInput toMsg =
     Decode.string
         |> Decode.andThen decodeLatLong
         |> Decode.at [ "target", "value" ]
