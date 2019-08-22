@@ -7,10 +7,7 @@ import Html.Events exposing (..)
 import Json.Decode as Decode exposing (..)
 
 
-
--- main : Program Never Model Msg
-
-
+main : Program () Model Msg
 main =
     Browser.element
         { init = \() -> init
@@ -151,4 +148,4 @@ decodeLatLong str =
             Decode.succeed (num / 10000)
 
         Err err ->
-            Decode.fail "err"
+            Decode.fail <| errorToString err
