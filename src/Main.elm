@@ -1,15 +1,19 @@
-module Main exposing (..)
+module Main exposing (Model, Msg(..), decodeLatLong, init, leafletMap, main, onFloatInput, update, view)
 
+import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode exposing (..)
 
 
-main : Program Never Model Msg
+
+-- main : Program Never Model Msg
+
+
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \() -> init
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
@@ -52,16 +56,16 @@ update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
         SetLatitude latitude ->
-            { model | latitude = latitude } ! []
+            ( { model | latitude = latitude }, Cmd.none )
 
         SetLongitude longitude ->
-            { model | longitude = longitude } ! []
+            ( { model | longitude = longitude }, Cmd.none )
 
         SetLatLong latitude longitude ->
-            { model | latitude = latitude, longitude = longitude } ! []
+            ( { model | latitude = latitude, longitude = longitude }, Cmd.none )
 
         SetZoom zoom ->
-            { model | zoom = zoom } ! []
+            ( { model | zoom = zoom }, Cmd.none )
 
 
 leafletMap : List (Attribute a) -> List (Html a) -> Html a
@@ -78,11 +82,11 @@ view model =
                 [ type_ "range"
                 , Html.Attributes.min "-1800000"
                 , Html.Attributes.max "1800000"
-                , Html.Attributes.value (toString (model.latitude * 10000))
+                , Html.Attributes.value (String.fromFloat (model.latitude * 10000))
                 , onFloatInput SetLatitude
                 ]
                 []
-            , span [] [ text (toString model.latitude) ]
+            , span [] [ text (String.fromFloat model.latitude) ]
             ]
         , div []
             [ label [] [ text "Longitude" ]
@@ -90,11 +94,11 @@ view model =
                 [ type_ "range"
                 , Html.Attributes.min "-1800000"
                 , Html.Attributes.max "1800000"
-                , Html.Attributes.value (toString (model.longitude * 10000))
+                , Html.Attributes.value (String.fromFloat (model.longitude * 10000))
                 , onFloatInput SetLongitude
                 ]
                 []
-            , span [] [ text (toString model.longitude) ]
+            , span [] [ text (String.fromFloat model.longitude) ]
             ]
         , div []
             [ label [] [ text "Zoom" ]
@@ -114,8 +118,8 @@ view model =
             ]
             []
         , leafletMap
-            [ attribute "latitude" (toString model.latitude)
-            , attribute "longitude" (toString model.longitude)
+            [ attribute "latitude" (String.fromFloat model.latitude)
+            , attribute "longitude" (String.fromFloat model.longitude)
             , attribute "zoom" model.zoom
             , on "moveend"
                 (map2 SetLatLong
@@ -124,7 +128,7 @@ view model =
                 )
             , on "zoomend"
                 (at [ "target", "zoom" ] int
-                    |> Decode.map (toString >> SetZoom)
+                    |> Decode.map (String.fromInt >> SetZoom)
                 )
             ]
             []
@@ -147,4 +151,4 @@ decodeLatLong str =
             Decode.succeed (num / 10000)
 
         Err err ->
-            Decode.fail err
+            Decode.fail "err"
