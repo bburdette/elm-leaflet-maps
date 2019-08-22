@@ -7,11 +7,16 @@
         <link rel="import" href="bower_components/leaflet-map/leaflet-map.html">
 
         <link rel="stylesheet" href="styles.css">
+        <meta charset="UTF-8">
     </head>
     <body>
+        <div id="elm"></div>
         <script type="text/javascript" src="app.js"></script>
         <script type="text/javascript">
-            var app = Elm.Main.fullscreen();
-        </script>
+            app = Elm.Main.init(
+              { node: document.getElementById("elm"),
+                flags: 1,
+              });
+         </script>
     </body>
 </html>
